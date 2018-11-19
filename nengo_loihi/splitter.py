@@ -1,4 +1,5 @@
 from collections import defaultdict
+import copy
 import logging
 import warnings
 
@@ -263,13 +264,11 @@ def split_host_to_chip(networks, conn):
     # scale the input spikes based on the radius of the
     # target ensemble
     seed = networks.original.seed if conn.seed is None else conn.seed
-    transform = nengo.dists.get_samples(
-        conn.transform,
-        n=conn.size_out,
-        d=conn.size_mid,
-        rng=np.random.RandomState(seed=seed))
+    weights = conn.transform.sample(rng=np.random.RandomState(seed=seed))
     if isinstance(conn.post_obj, nengo.Ensemble):
-        transform = transform / conn.post_obj.radius
+        weights = weights / conn.post_obj.radius
+    transform = copy.copy(conn.transform)
+    type(transform).init.data[transform] = weights
     pre2ens = nengo.Connection(conn.pre, ens,
                                function=conn.function,
                                solver=conn.solver,
@@ -317,11 +316,6 @@ def split_chip_to_host(networks, conn):
 
     logger.debug("Creating Probe for %s", conn)
     seed = networks.original.seed if conn.seed is None else conn.seed
-    transform = nengo.dists.get_samples(
-        conn.transform,
-        n=conn.size_out,
-        d=conn.size_mid,
-        rng=np.random.RandomState(seed=seed))
 
     probe = nengo.Probe(
         conn.pre,
@@ -334,7 +328,8 @@ def split_chip_to_host(networks, conn):
         function=conn.function,
         eval_points=conn.eval_points,
         scale_eval_points=conn.scale_eval_points,
-        transform=transform
+        transform=conn.transform,
+        seed=seed,
     )
     networks.add(probe, "chip")
     networks.chip2host_receivers[probe] = receive
