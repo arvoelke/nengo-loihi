@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import logging
 import warnings
 
@@ -43,11 +43,11 @@ class SplitNetworks(object):
 
         # Used later in the build process
         self.chip2host_params = {}
-        self.chip2host_receivers = {}
-        self.host2chip_senders = {}
+        self.chip2host_receivers = OrderedDict()
+        self.host2chip_senders = OrderedDict()
 
-        self.adds = {}
-        self.moves = {}
+        self.adds = OrderedDict()
+        self.moves = OrderedDict()
         self.removes = []
 
     def __contains__(self, obj):

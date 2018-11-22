@@ -659,8 +659,10 @@ class CxProbe(object):
 
 
 class CxSpikeInput(object):
-    def __init__(self, n):
+    def __init__(self, n, label=None):
         self.n = n
+        self.label = label
+
         self.spikes = {}  # map sim timestep index to list of spike inds
         self.axons = []
         self.probes = []
@@ -1164,12 +1166,12 @@ class HostReceiveNode(nengo.Node):
 class ChipReceiveNode(nengo.Node):
     """For receiving host->chip messages"""
 
-    def __init__(self, dimensions, size_out):
+    def __init__(self, dimensions, size_out, **kwargs):
         self.raw_dimensions = dimensions
         self.spikes = []
         self.cx_spike_input = None  # set by builder
         super(ChipReceiveNode, self).__init__(
-            self.update, size_in=0, size_out=size_out)
+            self.update, size_in=0, size_out=size_out, **kwargs)
 
     def clear(self):
         self.spikes.clear()
@@ -1190,6 +1192,7 @@ class ChipReceiveNode(nengo.Node):
 
 class ChipReceiveNeurons(ChipReceiveNode):
     """Passes spikes directly (no on-off neuron encoding)"""
-    def __init__(self, dimensions, neuron_type=None):
+    def __init__(self, dimensions, neuron_type=None, **kwargs):
         self.neuron_type = neuron_type
-        super(ChipReceiveNeurons, self).__init__(dimensions, dimensions)
+        super(ChipReceiveNeurons, self).__init__(
+            dimensions, dimensions, **kwargs)
